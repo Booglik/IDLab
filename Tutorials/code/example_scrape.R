@@ -11,22 +11,22 @@ library(rvest)
 # - Scraper --------------------------------------------------------------------
 ## Define url to scrape from (in our case, 30-days weather forecast for SPb)
 source_url <- "https://www.gismeteo.com/weather-sankt-peterburg-4079/month/"
-
+read_html(source_url) -> page
 ## Get the data
 
-read_html(source_url) %>% 
+page %>% 
   # retrieve the date
   html_elements(".date") %>%
   # in a readable format
   html_text() -> days
 
-read_html(source_url) %>% 
+page %>% 
   # Maximum temperature...
   html_elements(".maxt") %>% 
   # ... in degrees celsius
   html_elements(".unit_temperature_c") %>% html_text() -> max_temps
 
-read_html(source_url) %>% 
+page %>% 
   # Same for minimum
   html_elements(".mint") %>% 
   html_elements(".unit_temperature_c") %>% html_text() -> min_temps
@@ -49,13 +49,13 @@ View(weather_data)
 ## create a proper date variable 
 weather_data %>%
   
-  # Separate the column where the webpage date is stored into month and day
+# Separate the column where the webpage date is stored into month and day
   separate(date, into = c("day", "month"), sep = " ") %>%
-  # Since month is only present at its beginning, we carry it down
+# Since month is only present at its beginning, we carry it down
   fill(month, .direction = "down") %>%
-  # Format date properly. "b" stands for non-numerically-defined month
+# Format date properly. "b" stands for non-numerically-defined month
   mutate(date = as.Date(paste0(day, month), "%d%b")) %>%
-  # We don't really need anymore the "day" and "months" variables
+# We don't really need anymore the "day" and "months" variables
   select(-day, -month) -> weather_data_clean
 
 View(weather_data_clean)
@@ -71,7 +71,7 @@ View(weather_data_clean)
 
 
 ## Re-using the former connection to the webpage, we find the weather icons
-read_html(source_url) %>% 
+read_html(page) %>% 
   html_elements(".icon") %>% 
   # We want to get their internal naming to be able to parse it into datapoints
   html_children() %>% 
